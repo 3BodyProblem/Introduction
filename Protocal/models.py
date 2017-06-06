@@ -2,6 +2,33 @@ from django.contrib import admin
 from django.db import models
 
 
+
+class DataSourceType( models.Model ):
+	ID = models.AutoField( primary_key = True )
+	DataSourceName = models.CharField( max_length = 32 )
+	DataSourceDesc = models.CharField( max_length = 128 )
+
+	class Meta:
+		db_table = 'T_DataSource'
+
+
+class DataSourceTypeAdmin( admin.ModelAdmin ):
+	list_display = ( 'DataSourceName', 'DataSourceDesc' )
+
+
+class MarketsSupport( models.Model ):
+	ID = models.AutoField( primary_key = True )
+	MkName = models.CharField( max_length = 32 )
+	DataSourceID = models.ForeignKey( DataSourceType )
+
+	class Meta:
+		db_table = 'T_Markets'
+
+
+class MarketsSupportAdmin( admin.ModelAdmin ):
+	list_display = ( 'MkName', 'DataSourceID' )
+
+
 class DataType( models.Model ):
 	ID = models.AutoField( primary_key = True )
 	TypeName = models.CharField( max_length = 32 )
@@ -23,16 +50,20 @@ class DataTypeAdmin( admin.ModelAdmin ):
 class Quotation( models.Model ):
 	ID = models.AutoField( primary_key = True )
 	AttributeName = models.CharField( max_length = 20 )
-	AttributeType = models.ForeignKey( DataType )
+	AttributeType = models.ForeignKey( DataType, null = True )
 	AttributeDesc = models.CharField( max_length = 128 )
+	MarketID = models.ForeignKey( MarketsSupport, null = True )
 
 	class Meta:
 		db_table = 'T_Quotation'
 
 
 class QuotationAdmin( admin.ModelAdmin ):
-	pass
-
+	list_display = ( 'AttributeName', 'AttributeType', 'AttributeDesc' )
+	fieldsets = [
+			(None, {'fields':['AttributeName']}),
+			('Message Description:', {'fields':['AttributeType','AttributeDesc']})
+		]
 
 
 

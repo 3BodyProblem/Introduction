@@ -84,7 +84,12 @@ class Message( models.Model ):
 		db_table = 'T_Message'
 
 
+def act_query( modeladmin, request, queryset ):
+	queryset.update( status='p' )
+act_query.short_description = "查询消息详细结构"
+
 class MessageAdmin( admin.ModelAdmin ):
+	actions = [act_query]
 	list_display = ( 'MessageID', 'MessageName', 'StructureName', 'MessageDesc', 'MarketID', 'FrequencyLv' )
 	fieldsets = [
 			(None, {'fields':['MessageID', 'MessageName', 'FrequencyLv']}),
@@ -111,7 +116,6 @@ class FieldDefinition( models.Model ):
 
 class FieldDefinitionAdmin( admin.ModelAdmin ):
 	list_display = ( 'AttributeName', 'AttributeType', 'AttributeDesc', 'MarketID', 'MessageID' )
-	search_fields = ( 'MessageID', )
 	fieldsets = [
 			(None, {'fields':['AttributeName', 'MarketID']}),
 			('Message Description:', {'fields':['AttributeType','AttributeDesc','MessageID']})

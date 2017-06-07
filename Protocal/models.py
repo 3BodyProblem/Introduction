@@ -62,11 +62,18 @@ class DataTypeAdmin( admin.ModelAdmin ):
 
 
 class Message( models.Model ):
+	FrequencyLevel = (
+				(0, '低频数据'),
+				(1, '高频数据'),
+			)
+
 	ID = models.AutoField( primary_key = True )
-	MessageID = models.IntegerField( null = True, blank = False )
+	MessageID = models.IntegerField( null = True, blank = False, unique=True )
 	MessageName = models.CharField( max_length = 32 )
+	StructureName = models.CharField( max_length = 32, null = True )
 	MessageDesc = models.CharField( max_length = 64 )
-	MarketID = models.ForeignKey( MarketsSupport, null = True )
+	MarketID = models.ForeignKey( MarketsSupport, null = True, db_index = True )
+	FrequencyLv = models.IntegerField( choices = FrequencyLevel )
 
 	def __str__( self ):
 		return self.MessageName
@@ -78,10 +85,10 @@ class Message( models.Model ):
 
 
 class MessageAdmin( admin.ModelAdmin ):
-	list_display = ( 'MessageID', 'MessageName', 'MessageDesc', 'MarketID' )
+	list_display = ( 'MessageID', 'MessageName', 'StructureName', 'MessageDesc', 'MarketID', 'FrequencyLv' )
 	fieldsets = [
-			(None, {'fields':['MessageID', 'MessageName']}),
-			('Message Definition: ', {'fields':['MessageDesc', 'MarketID']})
+			(None, {'fields':['MessageID', 'MessageName', 'FrequencyLv']}),
+			('Message Definition: ', {'fields':['StructureName', 'MessageDesc', 'MarketID']})
 		]
 
 
@@ -90,23 +97,23 @@ class FieldDefinition( models.Model ):
 	AttributeName = models.CharField( max_length = 20 )
 	AttributeType = models.ForeignKey( DataType, null = True )
 	AttributeDesc = models.CharField( max_length = 128 )
-	MessageID = models.ForeignKey( Message, null = True )
+	MarketID = models.ForeignKey( MarketsSupport, null = True, db_index = True )
+	MessageID = models.ForeignKey( Message, to_field = 'MessageID', null = True )
 
 	def __str__( self ):
 		return self.AttributeName
 
 	class Meta:
+		db_table = 'T_Field_Definition'
 		verbose_name = '消息字段'
 		verbose_name_plural = '消息字段列表'
-		db_table = 'T_Field_Definition'
-		ordering=['ID']
 
 
 class FieldDefinitionAdmin( admin.ModelAdmin ):
-	list_display = ( 'AttributeName', 'AttributeType', 'AttributeDesc', 'MessageID' )
+	list_display = ( 'AttributeName', 'AttributeType', 'AttributeDesc', 'MarketID', 'MessageID' )
 	search_fields = ( 'MessageID', )
 	fieldsets = [
-			(None, {'fields':['AttributeName']}),
+			(None, {'fields':['AttributeName', 'MarketID']}),
 			('Message Description:', {'fields':['AttributeType','AttributeDesc','MessageID']})
 		]
 

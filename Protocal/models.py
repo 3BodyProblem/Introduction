@@ -24,6 +24,7 @@ class MarketsSupport( models.Model ):
 	ID = models.AutoField( primary_key = True )
 	MkName = models.CharField( max_length = 32 )
 	DataSourceID = models.ForeignKey( DataSourceType )
+	MarketDesc = models.CharField( max_length = 128, blank = True, null = True )
 
 	def __str__( self ):
 		return self.MkName
@@ -35,7 +36,7 @@ class MarketsSupport( models.Model ):
 
 
 class MarketsSupportAdmin( admin.ModelAdmin ):
-	list_display = ( 'MkName', 'DataSourceID' )
+	list_display = ( 'MkName', 'DataSourceID', 'MarketDesc' )
 
 
 class DataType( models.Model ):
@@ -54,7 +55,7 @@ class DataType( models.Model ):
 
 
 class DataTypeAdmin( admin.ModelAdmin ):
-	list_display = ( 'TypeName', 'TypeDesc', 'TypeDefinition' )
+	list_display = ( 'TypeName', 'TypeDefinition', 'TypeDesc' )
 	fieldsets = [
 			(None, {'fields':['TypeName']}),
 			('Message Field Description:', {'fields':['TypeDesc', 'TypeDefinition']}),

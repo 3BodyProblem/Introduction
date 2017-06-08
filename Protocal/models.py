@@ -91,6 +91,7 @@ act_query.short_description = "查询消息详细结构"
 
 class MessageAdmin( admin.ModelAdmin ):
 	actions = [act_query]
+	list_filter = ( 'MarketID', 'FrequencyLv' )
 	list_display = ( 'MessageID', 'MessageName', 'StructureName', 'MessageDesc', 'MarketID', 'FrequencyLv' )
 	fieldsets = [
 			(None, {'fields':['MessageID', 'MessageName', 'FrequencyLv']}),
@@ -115,7 +116,8 @@ class FieldDefinition( models.Model ):
 		verbose_name_plural = '消息字段列表'
 
 
-class FieldDefinitionAdmin( admin.ModelAdmin ):
+class FieldDefinitionAdmin( admin.ModelAdmin ):#SimpleListFilter
+	list_filter = ( 'MarketID', 'MessageID' )
 	list_display = ( 'AttributeName', 'AttributeType', 'AttributeDesc', 'MarketID', 'MessageID' )
 	fieldsets = [
 			(None, {'fields':['AttributeName', 'MarketID']}),

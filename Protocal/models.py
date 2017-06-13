@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 from django.db import models
 
 
@@ -116,8 +117,21 @@ class FieldDefinition( models.Model ):
 		verbose_name_plural = '消息字段列表'
 
 
-class FieldDefinitionAdmin( admin.ModelAdmin ):#SimpleListFilter
-	list_filter = ( 'MarketID', 'MessageID' )
+class MessageIDFilter( SimpleListFilter ):
+	title = r'选择消息名称'
+	parameter_name = 'MessageID'
+
+	def lookups( self, request, model_admin ):
+		qs = model_admin.get_queryset( request ).distinct()
+		for item in qs:
+			yield( item.MessageID, item.MessageID )
+
+	def queryset( self, request, queryset ):
+		return queryset#.filter( MessageID = request.GET['MessageID'] )
+
+
+class FieldDefinitionAdmin( admin.ModelAdmin ):
+	list_filter = ( 'MarketID', MessageIDFilter )#'MessageID' )
 	list_display = ( 'AttributeName', 'AttributeType', 'AttributeDesc', 'MarketID', 'MessageID' )
 	fieldsets = [
 			(None, {'fields':['AttributeName', 'MarketID']}),

@@ -122,16 +122,18 @@ class MessageIDFilter( SimpleListFilter ):
 	parameter_name = 'MessageID'
 
 	def lookups( self, request, model_admin ):
-		qs = model_admin.get_queryset( request ).distinct()
+		qs = model_admin.get_queryset( request ).values( 'MessageID_id', 'MessageID' ).distinct()
 		for item in qs:
-			yield( item.MessageID, item.MessageID )
+			yield( item['MessageID_id'], str(item) )# item['MessageID'] )
+			#yield( item.MessageID, str(item.MessageID_id) )
 
 	def queryset( self, request, queryset ):
 		return queryset#.filter( MessageID = request.GET['MessageID'] )
 
 
 class FieldDefinitionAdmin( admin.ModelAdmin ):
-	list_filter = ( 'MarketID', MessageIDFilter )#'MessageID' )
+	empty_value_display = '---'
+	list_filter = ( 'MarketID', MessageIDFilter )
 	list_display = ( 'AttributeName', 'AttributeType', 'AttributeDesc', 'MarketID', 'MessageID' )
 	fieldsets = [
 			(None, {'fields':['AttributeName', 'MarketID']}),

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.db import models
+from django.utils.html import format_html
 
 
 class DataSourceType( models.Model ):
@@ -63,6 +64,9 @@ class DataTypeAdmin( admin.ModelAdmin ):
 		]
 
 
+#######################################################################################
+
+
 class Message( models.Model ):
 	FrequencyLevel = (
 				(0, '低频数据'),
@@ -77,6 +81,11 @@ class Message( models.Model ):
 	MarketID = models.ForeignKey( MarketsSupport, null = True, db_index = True )
 	FrequencyLv = models.IntegerField( choices = FrequencyLevel )
 
+	def MsgName( self ):
+		return format_html( '<span style="font-weight:bold"><a href="../fielddefinition/?MessageID={0}&MarketID={1}">[ {2} ]</a></span>', self.MessageID, self.MarketID_id, self.MessageName )
+
+	MsgName.allow_tags = True
+
 	def __str__( self ):
 		return self.MessageName
 
@@ -86,18 +95,16 @@ class Message( models.Model ):
 		db_table = 'T_Message'
 
 
-def act_query( modeladmin, request, queryset ):
-	queryset.update( status='p' )
-act_query.short_description = "查询消息详细结构"
-
 class MessageAdmin( admin.ModelAdmin ):
-	actions = [act_query]
 	list_filter = ( 'MarketID', 'FrequencyLv' )
-	list_display = ( 'MessageID', 'MessageName', 'StructureName', 'MessageDesc', 'MarketID', 'FrequencyLv' )
+	list_display = ( 'MessageID', 'MsgName', 'StructureName', 'MessageDesc', 'MarketID', 'FrequencyLv' )
 	fieldsets = [
 			(None, {'fields':['MessageID', 'MessageName', 'FrequencyLv']}),
 			('Message Definition: ', {'fields':['StructureName', 'MessageDesc', 'MarketID']})
 		]
+
+
+#############################################################################################
 
 
 class FieldDefinition( models.Model ):
@@ -106,7 +113,7 @@ class FieldDefinition( models.Model ):
 	AttributeType = models.ForeignKey( DataType, null = True )
 	AttributeDesc = models.CharField( max_length = 128 )
 	MarketID = models.ForeignKey( MarketsSupport, null = True, db_index = True )
-	MessageID = models.ForeignKey( Message, to_field = 'MessageID', null = True )
+	MessageID = models.ForeignKey( Message, to_field = 'MessageID', null = True, related_name = "tags" )
 
 	def __str__( self ):
 		return self.AttributeName
@@ -117,29 +124,47 @@ class FieldDefinition( models.Model ):
 		verbose_name_plural = '消息字段列表'
 
 
+class MarketIDFilter( SimpleListFilter ):
+	empty_value_display = '---'
+	title = r'选择市场名称'
+	parameter_name = 'MarketID'
+
+	def lookups( self, request, model_admin ):
+		qs = model_admin.get_queryset( request ).values( 'MarketID_id', 'MarketID__MkName' ).distinct()
+		for item in qs:
+			yield( item['MarketID_id'], item['MarketID__MkName'] )
+
+	def queryset( self, request, queryset ):
+		if 'MarketID' in request.GET:
+			return queryset.filter( MarketID = request.GET['MarketID'] ).order_by('ID')
+		else:
+			return queryset
+
+
 class MessageIDFilter( SimpleListFilter ):
 	title = r'选择消息名称'
 	parameter_name = 'MessageID'
 
 	def lookups( self, request, model_admin ):
-		qs = model_admin.get_queryset( request ).values( 'MessageID_id', 'MessageID' ).distinct()
+		qs = model_admin.get_queryset( request ).values( 'MessageID_id', 'MessageID__MessageName'  ).distinct()
 		for item in qs:
-			yield( item['MessageID_id'], str(item) )# item['MessageID'] )
-			#yield( item.MessageID, str(item.MessageID_id) )
+			yield( item['MessageID_id'], item['MessageID__MessageName'] )
 
 	def queryset( self, request, queryset ):
-		return queryset#.filter( MessageID = request.GET['MessageID'] )
+		if 'MessageID' in request.GET:
+			return queryset.filter( MessageID = request.GET['MessageID'] ).order_by('ID')
+		else:
+			return queryset
 
 
 class FieldDefinitionAdmin( admin.ModelAdmin ):
 	empty_value_display = '---'
-	list_filter = ( 'MarketID', MessageIDFilter )
+	list_filter = ( MarketIDFilter, MessageIDFilter )
 	list_display = ( 'AttributeName', 'AttributeType', 'AttributeDesc', 'MarketID', 'MessageID' )
 	fieldsets = [
 			(None, {'fields':['AttributeName', 'MarketID']}),
 			('Message Description:', {'fields':['AttributeType','AttributeDesc','MessageID']})
 		]
-
 
 
 

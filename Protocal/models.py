@@ -57,6 +57,7 @@ class DataType( models.Model ):
 
 
 class DataTypeAdmin( admin.ModelAdmin ):
+	list_filter = ( 'ID', )
 	list_display = ( 'TypeName', 'TypeDefinition', 'TypeDesc' )
 	fieldsets = [
 			(None, {'fields':['TypeName']}),
@@ -118,6 +119,9 @@ class FieldDefinition( models.Model ):
 	def __str__( self ):
 		return self.AttributeName
 
+	def AttrType( self ):
+		return format_html( '<span style="font-weight:bold"><a href="../datatype/?ID={0}">[ {1} ]</a></span>', self.AttributeType_id, self.AttributeType )
+
 	class Meta:
 		db_table = 'T_Field_Definition'
 		verbose_name = '消息字段'
@@ -160,7 +164,7 @@ class MessageIDFilter( SimpleListFilter ):
 class FieldDefinitionAdmin( admin.ModelAdmin ):
 	empty_value_display = '---'
 	list_filter = ( MarketIDFilter, MessageIDFilter )
-	list_display = ( 'AttributeName', 'AttributeType', 'AttributeDesc', 'MarketID', 'MessageID' )
+	list_display = ( 'AttributeName', 'AttrType', 'AttributeDesc', 'MarketID', 'MessageID' )
 	fieldsets = [
 			(None, {'fields':['AttributeName', 'MarketID']}),
 			('Message Description:', {'fields':['AttributeType','AttributeDesc','MessageID']})
